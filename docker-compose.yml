@@ -1,0 +1,32 @@
+version: "3.7"
+services:
+  chrome:
+    image: selenium/standalone-chrome:latest
+    hostname: chrome
+    ports:
+      - "5900:5900"
+      - "4444:4444"
+    privileged: true
+    shm_size: 2g
+  db:
+    image: postgres:13.5
+    environment:
+      - POSTGRES_DB=DelphosIQ
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=P@ssw0rd
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - db-data:/var/lib/postgresql/data/pgdata:rw,Z
+  web:
+    build: .
+    depends_on: [db, chrome]
+    restart: always
+    env_file: .env
+    command: |
+      python3 manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app:rw,Z
+    ports:
+      - "${WEB_PORT:-8066}:8000"
+volumes:
+  db-data:
